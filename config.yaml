@@ -1,0 +1,41 @@
+# The ID of the project in which the resource will be created
+project: "daytona-test"
+
+# Name of the GKE cluster
+cluster_name: "daytona-workspaces"
+
+# DNS zone that will be created in Cloud DNS.
+dns_zone: "daytona.example.com"
+
+# The region to host the cluster in. This terraform will create Regional cluster
+region: "us-east1"
+
+# Zones from the region set in `region` variable. Only in these zones will cluster nodes be created
+zones: ["us-east1-b", "us-east1-c", "us-east1-d"]
+
+# Setup subnet for GKE and subnets for GKE service, pods and control plane.
+gke_network:
+  region_subnet: "10.0.1.0/24"
+  service_subnet: "10.1.0.0/16"
+  pod_subnet: "10.2.0.0/16"
+  control_plane_subnet: "10.0.0.0/28"
+
+# External networks that can access the Kubernetes cluster master through HTTPS.
+# More info https://cloud.google.com/kubernetes-engine/docs/how-to/authorized-networks
+# authorized_networks:
+#   admin1: 198.198.8.1/32
+#   office2: 198.199.8.1/24
+authorized_networks: {}
+
+# You must replace this email address with your own.
+# Let's Encrypt will use this to contact you about expiring
+# certificates, and issues related to your account.
+# More info https://cert-manager.io/docs/configuration/acme/dns01/#configuring-dns01-challenge-provider
+email_ca_issuer: cert-admin@example.com
+
+# You must set Identity Provider information here (IdP)
+# More info https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+gitProviders:
+  github:
+    clientId: changeme
+    clientSecret: changeme
