@@ -1,7 +1,7 @@
 # daemonset that runs on longhorn node pool in order to create Raid0 of all SSD disks
 # and create mountpoint (path) which will be used by Longhorn for disk storage
 resource "kubectl_manifest" "gke_raid_disks" {
-  yaml_body = <<YAML
+  yaml_body  = <<YAML
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -68,7 +68,20 @@ spec:
             mount -o discard,defaults "$${device}" "$${mountpoint}"
             chmod a+w "$${mountpoint}"
 YAML
+  depends_on = [kubernetes_namespace.namespace]
 
+}
+
+resource "kubectl_manifest" "longhorn_priority_class" {
+  yaml_body = <<YAML
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: custom-node-critical
+value: 1000000000
+globalDefault: false
+description: "Custom PriorityClass for longhorn pods"
+YAML
 }
 
 resource "kubectl_manifest" "longhorn_iscsi" {
@@ -120,7 +133,8 @@ spec:
 YAML
 
   depends_on = [
-    kubectl_manifest.longhorn_iscsi
+    kubectl_manifest.longhorn_iscsi,
+    kubernetes_namespace.namespace
   ]
 
 }
@@ -147,11 +161,12 @@ defaultSettings:
   deletingConfirmationFlag: true
   createDefaultDiskLabeledNodes: true
   defaultDataPath: /mnt/disks/raid/0
-  kubernetesClusterAutoscalerEnabled: false
+  kubernetesClusterAutoscalerEnabled: true
   replicaAutoBalance: best-effort
   replica-replenishment-wait-interval: 0
   storageOverProvisioningPercentage: 500
   taintToleration: "longhorn-node=true:NoSchedule"
+  priorityClass: custom-node-critical
 longhornManager:
   tolerations:
     - key: "longhorn-node"
@@ -169,8 +184,10 @@ longhornDriver:
   ]
 
   depends_on = [
+    kubernetes_namespace.namespace,
     kubectl_manifest.gke_raid_disks,
     kubectl_manifest.longhorn_iscsi,
-    kubectl_manifest.sysbox
+    kubectl_manifest.sysbox,
+    kubectl_manifest.longhorn_priority_class
   ]
 }

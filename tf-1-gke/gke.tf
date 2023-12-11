@@ -32,6 +32,7 @@ resource "google_container_cluster" "cluster-1" {
   network                  = google_compute_network.daytona-vpc.name
   subnetwork               = google_compute_subnetwork.gke-subnet-1.name
   enable_shielded_nodes    = false
+  deletion_protection      = false
 
   private_cluster_config {
     enable_private_nodes    = true
@@ -58,6 +59,8 @@ resource "google_container_cluster" "cluster-1" {
   }
 
   monitoring_config {
+    enable_components = ["SYSTEM_COMPONENTS"]
+
     managed_prometheus {
       enabled = false
     }
@@ -98,14 +101,13 @@ resource "google_container_node_pool" "workload-pool-1" {
   name           = "workload-pool-1"
   cluster        = google_container_cluster.cluster-1.id
   node_locations = local.zones
-  node_count     = 1
 
   node_config {
     spot = false
 
     image_type   = "UBUNTU_CONTAINERD" # requirement for sysbox
-    machine_type = "c3d-standard-4"
-    disk_size_gb = 200
+    machine_type = "c3d-standard-16"
+    disk_size_gb = 100
     disk_type    = "pd-ssd"
 
     service_account = google_service_account.gke-default.email
@@ -149,7 +151,7 @@ resource "google_container_node_pool" "longhorn-pool-1" {
 
   node_config {
     image_type   = "UBUNTU_CONTAINERD" # requirement for iscsi
-    machine_type = "n1-standard-4"
+    machine_type = "n1-standard-8"
     disk_size_gb = 100
     disk_type    = "pd-ssd"
 
@@ -172,17 +174,11 @@ resource "google_container_node_pool" "longhorn-pool-1" {
       "longhorn-volumes"                     = "yes"
     }
 
-    # we taint longhorn node so nothing except longhorn components are running on this node pool
-    # also there is a bug because we cannot set taint in this resource. It affects google provider 5.x
-    # so thats why we keep this terraform plan <5
-    # More info https://github.com/hashicorp/terraform-provider-google/issues/16606
-    taint = [
-      {
-        effect = "NO_SCHEDULE"
-        key    = "longhorn-node"
-        value  = "true"
-      }
-    ]
+    taint {
+      effect = "NO_SCHEDULE"
+      key    = "longhorn-node"
+      value  = "true"
+    }
 
     # every SSD has 375GB. It will be setup in Raid 0. So total disk space for workspace volumes per node
     # will be `local_ssd_count x 375GB`
