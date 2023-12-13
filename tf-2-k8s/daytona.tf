@@ -3,7 +3,7 @@ resource "helm_release" "daytona_workspace" {
   namespace        = "watkins"
   repository       = "oci://ghcr.io/daytonaio/charts"
   chart            = "watkins"
-  version          = "2.73.0"
+  version          = "2.76.1"
   create_namespace = true
   timeout          = 720
   atomic           = true
@@ -28,6 +28,8 @@ ingress:
      cert-manager.io/cluster-issuer: letsencrypt-prod
   tls: true
 components:
+  dashboard:
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   workspaceVolumeInit:
     pullImages:
       storageClassName: "longhorn"
