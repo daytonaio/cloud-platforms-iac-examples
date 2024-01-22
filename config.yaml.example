@@ -33,6 +33,10 @@ authorized_networks: {}
 # More info https://cert-manager.io/docs/configuration/acme/dns01/#configuring-dns01-challenge-provider
 email_ca_issuer: cert-admin@example.com
 
+# Create kube-prometheus-stack for monitoring
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+prometheus_monitoring: false
+
 # You must set Identity Provider information here (IdP)
 # More info https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
 gitProviders:

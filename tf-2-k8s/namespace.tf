@@ -1,13 +1,27 @@
-
-variable "namespace_names" {
-  type    = list(string)
-  default = ["infrastructure", "longhorn-system"]
-}
-
-resource "kubernetes_namespace" "namespace" {
-  for_each = { for idx, name in var.namespace_names : idx => name }
+resource "kubernetes_namespace" "infrastructure" {
 
   metadata {
-    name = each.value
+    name = "infrastructure"
+  }
+}
+
+resource "kubernetes_namespace" "monitoring" {
+
+  metadata {
+    name = "monitoring"
+  }
+}
+
+resource "kubernetes_namespace" "longhorn-system" {
+
+  metadata {
+    name = "longhorn-system"
+  }
+}
+
+resource "kubernetes_namespace" "watkins" {
+
+  metadata {
+    name = "watkins"
   }
 }

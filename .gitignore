@@ -2,4 +2,4 @@
 .terraform.lock.hcl
 **/*.tfstate
 **/*.backup
-**/*.example
+config.yaml

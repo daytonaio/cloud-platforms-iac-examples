@@ -1,11 +1,10 @@
 resource "helm_release" "cert_manager" {
-  name             = "cert-manager"
-  repository       = "https://charts.jetstack.io"
-  chart            = "cert-manager"
-  version          = "1.13.2"
-  namespace        = "infrastructure"
-  create_namespace = true
-  atomic           = true
+  name       = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  chart      = "cert-manager"
+  version    = "1.13.2"
+  namespace  = kubernetes_namespace.infrastructure.metadata[0].name
+  atomic     = true
 
   values = [<<YAML
 installCRDs: true
@@ -18,23 +17,26 @@ webhook:
     # requests:
     #   cpu: 10m
     #   memory: 32Mi
+serviceAccount:
+  create: true
+  name: "cert-manager"
+  annotations:
+    iam.gke.io/gcp-service-account: ${module.cert_manager_service_account.gcp_service_account_email}
 YAML
   ]
 
-  depends_on = [kubernetes_namespace.namespace]
 }
 
 module "cert_manager_service_account" {
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   name                = "cert-manager"
-  namespace           = "infrastructure"
+  namespace           = kubernetes_namespace.infrastructure.metadata[0].name
   use_existing_k8s_sa = true
-  annotate_k8s_sa     = true
+  annotate_k8s_sa     = false
   cluster_name        = local.cluster_name
   project_id          = local.project
   location            = local.region
   roles               = ["roles/dns.admin"]
-  module_depends_on   = [helm_release.cert_manager]
 }
 
 
