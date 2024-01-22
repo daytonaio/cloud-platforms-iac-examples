@@ -1,12 +1,11 @@
 resource "helm_release" "external_dns" {
-  name             = "external-dns"
-  repository       = "oci://registry-1.docker.io/bitnamicharts"
-  chart            = "external-dns"
-  version          = "6.28.5"
-  namespace        = "infrastructure"
-  create_namespace = true
-  atomic           = false
-  cleanup_on_fail  = true
+  name            = "external-dns"
+  repository      = "oci://registry-1.docker.io/bitnamicharts"
+  chart           = "external-dns"
+  version         = "6.28.5"
+  namespace       = kubernetes_namespace.infrastructure.metadata[0].name
+  atomic          = false
+  cleanup_on_fail = true
 
   values = [<<YAML
 provider: google
@@ -15,21 +14,21 @@ google:
 domainFilters:
   - ${local.dns_zone}
 serviceAccount:
-  create: false
+  create: true
   name: "external-dns"
-  annotations: {}
+  annotations:
+    iam.gke.io/gcp-service-account: ${module.external_dns_service_account.gcp_service_account_email}
 YAML
   ]
 
-  depends_on = [kubernetes_namespace.namespace, module.external_dns_service_account]
 }
 
 module "external_dns_service_account" {
   source                          = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
   name                            = "external-dns"
-  namespace                       = "infrastructure"
-  use_existing_k8s_sa             = false
-  annotate_k8s_sa                 = true
+  namespace                       = kubernetes_namespace.infrastructure.metadata[0].name
+  use_existing_k8s_sa             = true
+  annotate_k8s_sa                 = false
   cluster_name                    = local.cluster_name
   project_id                      = local.project
   location                        = local.region

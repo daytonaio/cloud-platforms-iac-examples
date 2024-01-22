@@ -4,7 +4,7 @@ data "google_project" "project" {
 data "google_container_engine_versions" "get_gke_version" {
   provider       = google-beta
   location       = local.zones[0]
-  version_prefix = "1.25."
+  version_prefix = "1.27."
 }
 
 resource "google_service_account" "gke-default" {
@@ -17,6 +17,7 @@ resource "google_project_iam_member" "gke-default" {
     "roles/monitoring.metricWriter",
     "roles/logging.logWriter",
     "roles/stackdriver.resourceMetadata.writer",
+    "roles/compute.securityAdmin"
   ])
   role    = each.key
   member  = "serviceAccount:${google_service_account.gke-default.email}"
@@ -97,6 +98,52 @@ resource "google_container_cluster" "cluster-1" {
 
 }
 
+resource "google_container_node_pool" "app-pool-1" {
+  name               = "app-pool-1"
+  cluster            = google_container_cluster.cluster-1.id
+  node_locations     = local.zones
+  initial_node_count = 1
+
+  node_config {
+    spot = false
+
+    image_type   = "UBUNTU_CONTAINERD" # requirement for sysbox
+    machine_type = "c3d-standard-8"
+    disk_size_gb = 100
+    disk_type    = "pd-ssd"
+
+    service_account = google_service_account.gke-default.email
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+
+    shielded_instance_config {
+      enable_secure_boot = false # requirement for sysbox
+    }
+
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+
+    labels = {
+      "sysbox-install"       = "no" # requirement for sysbox
+      "daytona.io/node-role" = "app"
+    }
+  }
+
+  autoscaling {
+    total_min_node_count = 1
+    total_max_node_count = 3
+    location_policy      = "BALANCED"
+  }
+
+  upgrade_settings {
+    max_unavailable = 1
+    max_surge       = 1
+  }
+
+}
+
 resource "google_container_node_pool" "workload-pool-1" {
   name           = "workload-pool-1"
   cluster        = google_container_cluster.cluster-1.id
@@ -119,19 +166,33 @@ resource "google_container_node_pool" "workload-pool-1" {
       enable_secure_boot = false # requirement for sysbox
     }
 
+    linux_node_config {
+      sysctls = {
+        "net.ipv6.conf.all.disable_ipv6"     = "1"
+        "net.ipv6.conf.default.disable_ipv6" = "1"
+      }
+    }
+
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
 
+    taint {
+      effect = "NO_SCHEDULE"
+      key    = "daytona.io/node-role"
+      value  = "workload"
+    }
+
     labels = {
-      "sysbox-install" = "yes" # requirement for sysbox
+      "sysbox-install"       = "yes" # requirement for sysbox
+      "daytona.io/node-role" = "workload"
     }
   }
 
   autoscaling {
-    min_node_count  = 1
-    max_node_count  = 9
-    location_policy = "BALANCED"
+    total_min_node_count = 1
+    total_max_node_count = 30
+    location_policy      = "ANY"
   }
 
   upgrade_settings {
@@ -141,7 +202,7 @@ resource "google_container_node_pool" "workload-pool-1" {
 
 }
 
-## Node pool that will hold all the longhorn volumes used by daytona workspaces
+## Node pool that will hold all the longhorn volumes used by daytona workload
 ## It is setup via local-ssd on GKE nodes - https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/local-ssd-raw
 resource "google_container_node_pool" "longhorn-pool-1" {
   name           = "longhorn-pool-1"
@@ -151,7 +212,7 @@ resource "google_container_node_pool" "longhorn-pool-1" {
 
   node_config {
     image_type   = "UBUNTU_CONTAINERD" # requirement for iscsi
-    machine_type = "n1-standard-8"
+    machine_type = "c2-standard-8"
     disk_size_gb = 100
     disk_type    = "pd-ssd"
 
@@ -168,16 +229,16 @@ resource "google_container_node_pool" "longhorn-pool-1" {
       mode = "GKE_METADATA"
     }
 
+    taint {
+      effect = "NO_SCHEDULE"
+      key    = "daytona.io/node-role"
+      value  = "storage"
+    }
+
     labels = {
       "sysbox-install"                       = "no" # no need for sysbox on longhorn volume nodes
       "node.longhorn.io/create-default-disk" = true
-      "longhorn-volumes"                     = "yes"
-    }
-
-    taint {
-      effect = "NO_SCHEDULE"
-      key    = "longhorn-node"
-      value  = "true"
+      "daytona.io/node-role"                 = "storage"
     }
 
     # every SSD has 375GB. It will be setup in Raid 0. So total disk space for workspace volumes per node
@@ -202,14 +263,14 @@ resource "google_compute_firewall" "master_to_nodes" {
 
   allow {
     protocol = "tcp"
-    ports    = ["8080", "8443", "9090", "9443", "9502", "9503"]
+    ports    = ["443", "8080", "8443", "9090", "9443", "9502", "9503"]
   }
 
   source_ranges           = [local.control_plane_subnet]
   target_service_accounts = [google_service_account.gke-default.email]
 }
 
-# this is to allow ssh into daytona workspaces
+# this is to allow ssh into daytona workload
 resource "google_compute_firewall" "ssh_gateway" {
   name      = "gke-custom-all-to-nodes-ssh"
   network   = google_compute_network.daytona-vpc.name

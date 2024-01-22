@@ -69,13 +69,14 @@ provider "helm" {
 locals {
   config = yamldecode(file("${path.module}/../config.yaml"))
 
-  project              = local.config.project
-  region               = local.config.region
-  zones                = local.config.zones
-  cluster_name         = local.config.cluster_name
-  dns_zone             = local.config.dns_zone
-  email                = local.config.email_ca_issuer
-  github_client_id     = local.config.gitProviders.github.clientId
-  github_client_secret = local.config.gitProviders.github.clientSecret
+  project               = local.config.project
+  region                = local.config.region
+  zones                 = local.config.zones
+  cluster_name          = local.config.cluster_name
+  dns_zone              = local.config.dns_zone
+  email                 = local.config.email_ca_issuer
+  github_client_id      = local.config.gitProviders.github.clientId
+  github_client_secret  = local.config.gitProviders.github.clientSecret
+  prometheus_monitoring = local.config.prometheus_monitoring
 
 }

@@ -1,12 +1,12 @@
 # daemonset that runs on longhorn node pool in order to create Raid0 of all SSD disks
 # and create mountpoint (path) which will be used by Longhorn for disk storage
 resource "kubectl_manifest" "gke_raid_disks" {
-  yaml_body  = <<YAML
+  yaml_body = <<YAML
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: gke-raid-disks
-  namespace: longhorn-system
+  namespace: ${kubernetes_namespace.longhorn-system.metadata[0].name}
   labels:
     k8s-app: gke-raid-disks
 spec:
@@ -22,9 +22,9 @@ spec:
         cloud.google.com/gke-local-nvme-ssd: "true"
       hostPID: true
       tolerations:
-      - key: "longhorn-node"
+      - key: "daytona.io/node-role"
         operator: "Equal"
-        value: "true"
+        value: "storage"
         effect: "NoSchedule"
       containers:
       - name: startup-script
@@ -68,7 +68,6 @@ spec:
             mount -o discard,defaults "$${device}" "$${mountpoint}"
             chmod a+w "$${mountpoint}"
 YAML
-  depends_on = [kubernetes_namespace.namespace]
 
 }
 
@@ -90,7 +89,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: longhorn-iscsi-installation
-  namespace: longhorn-system
+  namespace: ${kubernetes_namespace.longhorn-system.metadata[0].name}
   labels:
     app: longhorn-iscsi-installation
   annotations:
@@ -109,9 +108,9 @@ spec:
       nodeSelector:
         cloud.google.com/gke-local-nvme-ssd: "true"
       tolerations:
-      - key: "longhorn-node"
+      - key: "daytona.io/node-role"
         operator: "Equal"
-        value: "true"
+        value: "storage"
         effect: "NoSchedule"
       initContainers:
       - name: iscsi-installation
@@ -133,22 +132,20 @@ spec:
 YAML
 
   depends_on = [
-    kubectl_manifest.longhorn_iscsi,
-    kubernetes_namespace.namespace
+    kubectl_manifest.gke_raid_disks,
   ]
 
 }
 
 resource "helm_release" "longhorn" {
-  name             = "longhorn"
-  repository       = "https://charts.longhorn.io"
-  chart            = "longhorn"
-  version          = "1.5.3"
-  create_namespace = true
-  namespace        = "longhorn-system"
-  timeout          = 300
-  atomic           = true
-  wait             = true
+  name       = "longhorn"
+  repository = "https://charts.longhorn.io"
+  chart      = "longhorn"
+  version    = "1.5.3"
+  namespace  = kubernetes_namespace.longhorn-system.metadata[0].name
+  timeout    = 300
+  atomic     = true
+  wait       = true
 
   values = [
     <<EOF
@@ -165,29 +162,40 @@ defaultSettings:
   replicaAutoBalance: best-effort
   replica-replenishment-wait-interval: 0
   storageOverProvisioningPercentage: 500
-  taintToleration: "longhorn-node=true:NoSchedule"
+  storageMinimalAvailablePercentage: 10
+  storageReservedPercentageForDefaultDisk: 15
+  taintToleration: "daytona.io/node-role=storage:NoSchedule;daytona.io/node-role=workload:NoSchedule"
   priorityClass: custom-node-critical
+  guaranteedInstanceManagerCPU: 20
 longhornManager:
+  priorityClass: custom-node-critical
   tolerations:
-    - key: "longhorn-node"
+    - key: "daytona.io/node-role"
       operator: "Equal"
-      value: "true"
+      value: "storage"
+      effect: "NoSchedule"
+    - key: "daytona.io/node-role"
+      operator: "Equal"
+      value: "workload"
       effect: "NoSchedule"
 longhornDriver:
+  priorityClass: custom-node-critical
   tolerations:
-    - key: "longhorn-node"
+    - key: "daytona.io/node-role"
       operator: "Equal"
-      value: "true"
+      value: "storage"
       effect: "NoSchedule"
-
+    - key: "daytona.io/node-role"
+      operator: "Equal"
+      value: "workload"
+      effect: "NoSchedule"
   EOF
   ]
 
   depends_on = [
-    kubernetes_namespace.namespace,
     kubectl_manifest.gke_raid_disks,
     kubectl_manifest.longhorn_iscsi,
-    kubectl_manifest.sysbox,
-    kubectl_manifest.longhorn_priority_class
+    kubectl_manifest.longhorn_priority_class,
+    kubectl_manifest.sysbox
   ]
 }
