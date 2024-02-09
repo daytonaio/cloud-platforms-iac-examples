@@ -5,7 +5,7 @@ project: "daytona-test"
 cluster_name: "daytona-workspaces"
 
 # DNS zone that will be created in Cloud DNS.
-dns_zone: "daytona.example.com"
+dns_zone: "daytona.changeme"
 
 # The region to host the cluster in. This terraform will create Regional cluster
 region: "us-east1"

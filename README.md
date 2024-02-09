@@ -1,16 +1,18 @@
-# gcp-example
+# Cloud Platform Infrastructure as Code Examples (cloud-platforms-iac-examples)
 
-In order to deploy GKE cluster with Daytona follow these steps:
+This repository provides Terraform IaC code examples for deploying infrastructure on various cloud platforms. Currently, it includes examples for:
 
-1. Adjust values to your environment in `config.yaml`
-2. First run terraform in `tf-1-gke` folder:
-```
-cd tf-1-gke
-terraform apply
-```
-3. Once finished move into `tf-2-k8s` folder:
-```
-cd tf-2-k8s
-terraform apply
-```
-4. Daytona application will be available on your domain you set in `config.yaml`
+* GCP
+* AWS
+
+More cloud providers will be added in the future.
+
+## Subdirectories
+
+* `gcp_example`: IaC code for setting up infrastructure on Google Cloud Platform.
+* `aws_example`: IaC code for setting up infrastructure on Amazon Web Services.
+
+## Getting Started
+
+1. Choose the cloud platform you're interested in (e.g., `gcp_example`, `aws_example`).
+2. Follow the instructions in the respective subdirectory readme to set up your environment and run the Terraform code.

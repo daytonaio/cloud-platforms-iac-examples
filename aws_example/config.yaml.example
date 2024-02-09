@@ -1,0 +1,42 @@
+# The ID of the project in which the resource will be created
+region: us-east-1
+dns_zone: "daytona.changeme"
+
+vpc:
+  cidr: 10.0.0.0/16
+  azs:
+    - id: us-east-1a
+      subnets:
+        public: 10.0.1.0/24
+        private: 10.0.64.0/18
+    - id: us-east-1b
+      subnets:
+        public: 10.0.2.0/24
+        private: 10.0.128.0/18
+    - id: us-east-1c
+      subnets:
+        public: 10.0.3.0/24
+        private: 10.0.192.0/18
+
+# Name of the EKS cluster
+cluster_name: "daytona-workspaces"
+cluster_version: "1.28"
+
+# External networks that can access the Kubernetes cluster master through HTTPS.
+# More info https://cloud.google.com/kubernetes-engine/docs/how-to/authorized-networks
+# authorized_networks:
+#   admin1: 198.198.8.1/32
+#   office2: 198.199.8.1/24
+authorized_networks:
+  all: 0.0.0.0/0
+
+# Create kube-prometheus-stack for monitoring
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+prometheus_monitoring: false
+
+# You must set Identity Provider information here (IdP)
+# More info https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+gitProviders:
+  github:
+    clientId: changeme
+    clientSecret: changeme
