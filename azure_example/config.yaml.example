@@ -1,0 +1,44 @@
+# The name of the resource group in which the resources will be created
+resource_group_name: "daytona"
+
+# Name of the AKS cluster
+cluster_name: "daytona-workspaces"
+
+# DNS zone that will be created in Azure DNS.
+dns_zone: "daytona.changeme"
+
+# The region to host the cluster in. This terraform will create Regional cluster
+location: "eastus"
+
+# Zones from the region set in `region` variable. Only in these zones will cluster nodes be created
+zones: ["1", "2", "3"]
+
+# Setup subnet for Azure region and subnets for Azure AKS and Application Gateway services
+azure_network:
+  region_subnet: "10.0.0.0/16"
+  aks_subnet: "10.0.0.0/20"
+  appgw_subnet: "10.0.16.0/28"
+
+# External networks that can access the Kubernetes cluster master through HTTPS.
+# More info https://cloud.google.com/kubernetes-engine/docs/how-to/authorized-networks
+# authorized_networks:
+#   admin1: 198.198.8.1/32
+#   office2: 198.199.8.1/24
+authorized_networks: {}
+
+# You must replace this email address with your own.
+# Let's Encrypt will use this to contact you about expiring
+# certificates, and issues related to your account.
+# More info https://cert-manager.io/docs/configuration/acme/dns01/#configuring-dns01-challenge-provider
+email_ca_issuer: cert-admin@example.com
+
+# Create kube-prometheus-stack for monitoring
+# https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
+prometheus_monitoring: false
+
+# You must set Identity Provider information here (IdP)
+# More info https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/creating-an-oauth-app
+gitProviders:
+  github:
+    clientId: changeme
+    clientSecret: changeme
