@@ -1,10 +1,8 @@
 # Cloud Platform Infrastructure as Code Examples
 
 <p align="center">
-  <a href="https://skillicons.dev">
     <img src="https://img.shields.io/badge/terraform-%235835CC.svg?style=for-the-badge&logo=terraform&logoColor=white" />
     <img src="https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white" />
-  </a>
 </p>
 
 This repository provides Terraform IaC code examples for deploying infrastructure on various cloud platforms. Currently, it includes examples for:
