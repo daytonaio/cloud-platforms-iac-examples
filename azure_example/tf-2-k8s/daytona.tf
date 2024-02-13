@@ -29,7 +29,7 @@ ingress:
   tls: true
 components:
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/algebra-pydev/py-dev-templates/main/index.json
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   workspaceVolumeInit:
     pullImages:
       storageClassName: "longhorn"
