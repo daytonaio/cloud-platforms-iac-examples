@@ -16,7 +16,7 @@ resource "helm_release" "daytona_workspace" {
   namespace  = kubernetes_namespace.watkins.metadata[0].name
   repository = "oci://ghcr.io/daytonaio/charts"
   chart      = "watkins"
-  version    = "2.87.1"
+  version    = "2.89.3"
   timeout    = 720
   atomic     = true
 
@@ -37,12 +37,12 @@ ingress:
   enabled: true
   hostname: ${local.dns_zone}
   annotations:
-    kubernetes.io/ingress.class: "alb"
+    kubernetes.io/ingress.class: "gce"
     cert-manager.io/cluster-issuer: letsencrypt-prod
   tls: true
 components:
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio/samples-index/main/index.json
   sshGateway:
     service:
       port: 30000
@@ -52,14 +52,22 @@ components:
   workspaceProvisioner:
     workspaces:
       tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
+  workspaceProxy:
+    service:
+      annotations:
+        cloud.google.com/backend-config: '{"ports": {"80":"daytona"}}'
+  dashboard:
+    service:
+      annotations:
+        cloud.google.com/backend-config: '{"ports": {"3000":"daytona"}}'
+  realtimeServer:
+    service:
+      annotations:
+        cloud.google.com/backend-config: '{"ports": {"3000":"daytona"}}'
 gitProviders:
   github:
     clientId: ${local.github_client_id}
     clientSecret: ${local.github_client_secret}
-keycloak:
-  image:
-    repository: daytonaio/keycloak
-    tag: 22.0.5-daytona.r0-debian-11
 postgresql:
   enabled: true
 rabbitmq:
