@@ -69,6 +69,7 @@ longhornDriver:
 
   depends_on = [
     kubectl_manifest.longhorn_priority_class,
-    kubectl_manifest.sysbox
+    kubectl_manifest.sysbox,
+    helm_release.aws_load_balancer_controller
   ]
 }
