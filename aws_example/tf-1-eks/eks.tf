@@ -147,7 +147,8 @@ module "eks" {
         }
       }
       labels = {
-        "daytona.io/node-role" = "app"
+        "daytona.io/node-role"     = "app"
+        "daytona.io/runtime-ready" = "true"
       }
     },
 
@@ -232,6 +233,7 @@ module "eks" {
         "node.longhorn.io/create-default-disk" = true
         "aws.amazon.com/eks-local-ssd"         = "true"
         "daytona.io/node-role"                 = "storage"
+        "daytona.io/runtime-ready"             = "true"
       }
     }
 

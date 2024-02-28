@@ -3,7 +3,7 @@ resource "helm_release" "daytona_workspace" {
   namespace        = kubernetes_namespace.watkins.metadata[0].name
   repository       = "oci://ghcr.io/daytonaio/charts"
   chart            = "watkins"
-  version          = "2.86.4"
+  version          = "2.91.2"
   create_namespace = false
   timeout          = 720
   atomic           = true
@@ -15,7 +15,9 @@ image:
 namespaceOverride: "watkins"
 fullnameOverride: "watkins"
 configuration:
-  defaultWorkspaceClassName: kata
+  defaultWorkspaceClassName: small
+  workspaceRuntimeClassName: kata-clh
+  workspaceStorageClass: longhorn
   workspaceNamespace:
     name: watkins-workspaces
     create: true
@@ -29,10 +31,8 @@ ingress:
   tls: true
 components:
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio/samples-index/main/index.json
   workspaceVolumeInit:
-    pullImages:
-      storageClassName: "longhorn"
     excludeJetbrainsCodeEditors: false
   sshGateway:
     service:

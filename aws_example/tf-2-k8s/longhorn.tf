@@ -1,5 +1,9 @@
-# daemonset that runs on longhorn node pool in order to create Raid0 of all SSD disks
-# and create mountpoint (path) which will be used by Longhorn for disk storage
+# daemonset that runs on workload node pool in order to allow
+resource "kubectl_manifest" "runtime_checker" {
+  for_each  = toset(split("---\n", file("runtime-checker/runtime-checker.yaml")))
+  yaml_body = each.value
+}
+
 resource "kubectl_manifest" "longhorn_priority_class" {
   yaml_body = <<YAML
 apiVersion: scheduling.k8s.io/v1
@@ -39,11 +43,14 @@ defaultSettings:
   storageOverProvisioningPercentage: 500
   storageMinimalAvailablePercentage: 10
   storageReservedPercentageForDefaultDisk: 15
+  systemManagedComponentsNodeSelector: "daytona.io/runtime-ready:true"
   taintToleration: "daytona.io/node-role=storage:NoSchedule;daytona.io/node-role=workload:NoSchedule"
   priorityClass: custom-node-critical
   guaranteedInstanceManagerCPU: 20
 longhornManager:
   priorityClass: custom-node-critical
+  nodeSelector:
+    daytona.io/runtime-ready: "true"
   tolerations:
     - key: "daytona.io/node-role"
       operator: "Equal"
@@ -55,6 +62,8 @@ longhornManager:
       effect: "NoSchedule"
 longhornDriver:
   priorityClass: custom-node-critical
+  nodeSelector:
+    daytona.io/runtime-ready: "true"
   tolerations:
     - key: "daytona.io/node-role"
       operator: "Equal"

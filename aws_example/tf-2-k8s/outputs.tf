@@ -18,6 +18,8 @@ data "kubernetes_secret" "keycloak_admin" {
     name      = "watkins-watkins-keycloak"
     namespace = kubernetes_namespace.watkins.metadata[0].name
   }
+
+  depends_on = [helm_release.daytona_workspace]
 }
 
 output "keycloak_admin_password" {
