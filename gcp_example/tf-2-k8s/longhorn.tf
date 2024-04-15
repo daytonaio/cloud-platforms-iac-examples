@@ -105,12 +105,9 @@ spec:
     spec:
       hostNetwork: true
       hostPID: true
-      nodeSelector:
-        cloud.google.com/gke-local-nvme-ssd: "true"
       tolerations:
       - key: "daytona.io/node-role"
         operator: "Equal"
-        value: "storage"
         effect: "NoSchedule"
       initContainers:
       - name: iscsi-installation
@@ -137,11 +134,16 @@ YAML
 
 }
 
+resource "kubectl_manifest" "runtime_checker" {
+  for_each  = toset(split("---\n", file("runtime-checker/runtime-checker.yaml")))
+  yaml_body = each.value
+}
+
 resource "helm_release" "longhorn" {
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.5.3"
+  version    = "1.5.4"
   namespace  = kubernetes_namespace.longhorn-system.metadata[0].name
   timeout    = 300
   atomic     = true
@@ -164,11 +166,14 @@ defaultSettings:
   storageOverProvisioningPercentage: 500
   storageMinimalAvailablePercentage: 10
   storageReservedPercentageForDefaultDisk: 15
+  systemManagedComponentsNodeSelector: "daytona.io/runtime-ready:true"
   taintToleration: "daytona.io/node-role=storage:NoSchedule;daytona.io/node-role=workload:NoSchedule"
   priorityClass: custom-node-critical
   guaranteedInstanceManagerCPU: 20
 longhornManager:
   priorityClass: custom-node-critical
+  nodeSelector:
+    daytona.io/runtime-ready: "true"
   tolerations:
     - key: "daytona.io/node-role"
       operator: "Equal"
@@ -180,6 +185,8 @@ longhornManager:
       effect: "NoSchedule"
 longhornDriver:
   priorityClass: custom-node-critical
+  nodeSelector:
+    daytona.io/runtime-ready: "true"
   tolerations:
     - key: "daytona.io/node-role"
       operator: "Equal"
@@ -196,6 +203,7 @@ longhornDriver:
     kubectl_manifest.gke_raid_disks,
     kubectl_manifest.longhorn_iscsi,
     kubectl_manifest.longhorn_priority_class,
-    kubectl_manifest.sysbox
+    kubectl_manifest.sysbox,
+    kubectl_manifest.runtime_checker
   ]
 }

@@ -126,8 +126,9 @@ resource "google_container_node_pool" "app-pool-1" {
     }
 
     labels = {
-      "sysbox-install"       = "no" # requirement for sysbox
-      "daytona.io/node-role" = "app"
+      "sysbox-install"           = "no" # requirement for sysbox
+      "daytona.io/node-role"     = "app"
+      "daytona.io/runtime-ready" = "true"
     }
   }
 
@@ -202,7 +203,7 @@ resource "google_container_node_pool" "workload-pool-1" {
 
 }
 
-## Node pool that will hold all the longhorn volumes used by daytona workload
+## Node pool that will hold all the longhorn volumes used by daytona workspaces
 ## It is setup via local-ssd on GKE nodes - https://cloud.google.com/kubernetes-engine/docs/how-to/persistent-volumes/local-ssd-raw
 resource "google_container_node_pool" "longhorn-pool-1" {
   name           = "longhorn-pool-1"
@@ -239,6 +240,7 @@ resource "google_container_node_pool" "longhorn-pool-1" {
       "sysbox-install"                       = "no" # no need for sysbox on longhorn volume nodes
       "node.longhorn.io/create-default-disk" = true
       "daytona.io/node-role"                 = "storage"
+      "daytona.io/runtime-ready"             = "true"
     }
 
     # every SSD has 375GB. It will be setup in Raid 0. So total disk space for workspace volumes per node
@@ -270,7 +272,7 @@ resource "google_compute_firewall" "master_to_nodes" {
   target_service_accounts = [google_service_account.gke-default.email]
 }
 
-# this is to allow ssh into daytona workload
+# this is to allow ssh into daytona workspaces
 resource "google_compute_firewall" "ssh_gateway" {
   name      = "gke-custom-all-to-nodes-ssh"
   network   = google_compute_network.daytona-vpc.name
