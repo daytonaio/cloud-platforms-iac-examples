@@ -106,8 +106,8 @@ spec:
       hostNetwork: true
       hostPID: true
       tolerations:
-      - key: "daytona.io/node-role"
-        operator: "Equal"
+      - key: ""
+        operator: "Exists"
         effect: "NoSchedule"
       initContainers:
       - name: iscsi-installation
@@ -143,7 +143,7 @@ resource "helm_release" "longhorn" {
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.5.4"
+  version    = "1.5.5"
   namespace  = kubernetes_namespace.longhorn-system.metadata[0].name
   timeout    = 300
   atomic     = true
@@ -167,7 +167,7 @@ defaultSettings:
   storageMinimalAvailablePercentage: 10
   storageReservedPercentageForDefaultDisk: 15
   systemManagedComponentsNodeSelector: "daytona.io/runtime-ready:true"
-  taintToleration: "daytona.io/node-role=storage:NoSchedule;daytona.io/node-role=workload:NoSchedule"
+  taintToleration: ":"
   priorityClass: custom-node-critical
   guaranteedInstanceManagerCPU: 20
 longhornManager:
@@ -175,26 +175,16 @@ longhornManager:
   nodeSelector:
     daytona.io/runtime-ready: "true"
   tolerations:
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "storage"
-      effect: "NoSchedule"
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "workload"
+    - key: ""
+      operator: "Exists"
       effect: "NoSchedule"
 longhornDriver:
   priorityClass: custom-node-critical
   nodeSelector:
     daytona.io/runtime-ready: "true"
   tolerations:
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "storage"
-      effect: "NoSchedule"
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "workload"
+    - key: ""
+      operator: "Exists"
       effect: "NoSchedule"
   EOF
   ]

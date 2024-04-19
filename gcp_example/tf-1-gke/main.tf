@@ -38,4 +38,13 @@ locals {
   control_plane_subnet = local.config.gke_network.control_plane_subnet
   dns_zone             = local.config.dns_zone
   authorized_networks  = local.config.authorized_networks
+
+  gpu = {
+    enabled   = local.config.gpu.enabled
+    node_type = local.config.gpu.node_type
+    type      = local.config.gpu.type
+    count     = local.config.gpu.count
+    zones     = local.config.gpu.zones
+  }
+
 }

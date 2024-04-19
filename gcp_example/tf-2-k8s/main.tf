@@ -79,4 +79,11 @@ locals {
   github_client_secret  = local.config.gitProviders.github.clientSecret
   prometheus_monitoring = local.config.prometheus_monitoring
 
+  gpu = {
+    enabled   = local.config.gpu.enabled
+    node_type = local.config.gpu.node_type
+    type      = local.config.gpu.type
+    count     = local.config.gpu.count
+    zones     = local.config.gpu.zones
+  }
 }
