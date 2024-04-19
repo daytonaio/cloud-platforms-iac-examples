@@ -16,7 +16,7 @@ resource "helm_release" "daytona_workspace" {
   namespace  = kubernetes_namespace.watkins.metadata[0].name
   repository = "oci://ghcr.io/daytonaio/charts"
   chart      = "watkins"
-  version    = "2.94.0"
+  version    = "2.95.0"
   timeout    = 720
   atomic     = true
 
@@ -27,7 +27,15 @@ image:
 namespaceOverride: "watkins"
 fullnameOverride: "watkins"
 configuration:
-  defaultWorkspaceClassName: small
+  defaultWorkspaceClass:
+    name: Default
+    cpu: 2
+    memory: 8
+    storage: 50
+    usageMultiplier: 1
+    # Leave undefined for disabled GPU support in default workspace class
+    gpu: ""
+  gpuResourceName: nvidia.com/gpu
   workspaceRuntimeClassName: sysbox-runc
   workspaceStorageClass: longhorn
   workspaceNamespace:
