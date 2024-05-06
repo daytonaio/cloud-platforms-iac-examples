@@ -35,7 +35,7 @@ ingress:
   tls: true
 components:
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio/samples-index/main/index.json
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   sshGateway:
     service:
       port: 30000
@@ -50,10 +50,6 @@ gitProviders:
   github:
     clientId: ${local.github_client_id}
     clientSecret: ${local.github_client_secret}
-keycloak:
-  image:
-    repository: daytonaio/keycloak
-    tag: 22.0.5-daytona.r0-debian-11
 postgresql:
   enabled: true
 rabbitmq:

@@ -3,7 +3,7 @@ resource "helm_release" "daytona_workspace" {
   namespace        = kubernetes_namespace.watkins.metadata[0].name
   repository       = "oci://ghcr.io/daytonaio/charts"
   chart            = "watkins"
-  version          = "2.91.2"
+  version          = "2.94.0"
   create_namespace = false
   timeout          = 720
   atomic           = true
@@ -31,7 +31,7 @@ ingress:
   tls: true
 components:
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio/samples-index/main/index.json
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   workspaceVolumeInit:
     excludeJetbrainsCodeEditors: false
   sshGateway:
@@ -48,10 +48,6 @@ gitProviders:
   github:
     clientId: ${local.github_client_id}
     clientSecret: ${local.github_client_secret}
-keycloak:
-  image:
-    repository: daytonaio/keycloak
-    tag: 22.0.5-daytona.r0-debian-11
   postgresql:
     primary:
       persistence:
