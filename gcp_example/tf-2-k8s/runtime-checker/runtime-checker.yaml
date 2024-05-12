@@ -46,7 +46,7 @@ spec:
         - effect: NoSchedule
           operator: Exists
       nodeSelector:
-        daytona.io/node-role: "workload"
+        sysbox-install: "yes"
       initContainers:
         - name: node-labeler
           image: bitnami/kubectl:latest
