@@ -41,8 +41,6 @@ ingress:
     cert-manager.io/cluster-issuer: letsencrypt-prod
   tls: true
 components:
-  dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   sshGateway:
     service:
       port: 30000
@@ -57,6 +55,7 @@ components:
       annotations:
         cloud.google.com/backend-config: '{"ports": {"80":"daytona"}}'
   dashboard:
+    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
     service:
       annotations:
         cloud.google.com/backend-config: '{"ports": {"3000":"daytona"}}'
