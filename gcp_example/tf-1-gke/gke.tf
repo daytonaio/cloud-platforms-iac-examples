@@ -4,11 +4,11 @@ data "google_project" "project" {
 data "google_container_engine_versions" "get_gke_version" {
   provider       = google-beta
   location       = local.zones[0]
-  version_prefix = "1.27."
+  version_prefix = "${local.config.cluster_version}."
 }
 
 resource "google_service_account" "gke-default" {
-  account_id   = "gke-default"
+  account_id   = "gke-${local.cluster_name}"
   display_name = "GKE Service Account"
 }
 
@@ -117,18 +117,13 @@ resource "google_container_node_pool" "app-pool-1" {
       "https://www.googleapis.com/auth/cloud-platform"
     ]
 
-    shielded_instance_config {
-      enable_secure_boot = false # requirement for sysbox
-    }
-
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
 
     labels = {
-      "sysbox-install"           = "no" # requirement for sysbox
-      "daytona.io/node-role"     = "app"
-      "daytona.io/runtime-ready" = "true"
+      "sysbox-install"       = "no"
+      "daytona.io/node-role" = "app"
     }
   }
 
@@ -167,13 +162,6 @@ resource "google_container_node_pool" "workload-pool-1" {
       enable_secure_boot = false # requirement for sysbox
     }
 
-    linux_node_config {
-      sysctls = {
-        "net.ipv6.conf.all.disable_ipv6"     = "1"
-        "net.ipv6.conf.default.disable_ipv6" = "1"
-      }
-    }
-
     workload_metadata_config {
       mode = "GKE_METADATA"
     }
@@ -191,8 +179,63 @@ resource "google_container_node_pool" "workload-pool-1" {
   }
 
   autoscaling {
-    total_min_node_count = 1
+    total_min_node_count = 0
     total_max_node_count = 30
+    location_policy      = "ANY"
+  }
+
+  upgrade_settings {
+    max_unavailable = 1
+    max_surge       = 1
+  }
+
+}
+
+resource "google_container_node_pool" "gpu-workload-pool-1" {
+  count = local.gpu.enabled ? 1 : 0
+
+  name           = "gpu-workload-pool-1"
+  cluster        = google_container_cluster.cluster-1.id
+  node_locations = local.gpu.zones
+
+  node_config {
+    spot = false
+
+    image_type   = "UBUNTU_CONTAINERD" # requirement for nvidia-gpu-operator
+    machine_type = local.gpu.node_type
+    disk_size_gb = 100
+    disk_type    = "pd-ssd"
+
+    service_account = google_service_account.gke-default.email
+    oauth_scopes = [
+      "https://www.googleapis.com/auth/cloud-platform"
+    ]
+
+    guest_accelerator {
+      type  = local.gpu.type
+      count = local.gpu.count
+      gpu_driver_installation_config {
+        gpu_driver_version = "INSTALLATION_DISABLED"
+      }
+    }
+
+    shielded_instance_config {
+      enable_secure_boot = false # requirement for sysbox
+    }
+
+    workload_metadata_config {
+      mode = "GKE_METADATA"
+    }
+
+    labels = {
+      "daytona.io/node-role"     = "gpu-workload"
+      "daytona.io/runtime-ready" = "true"
+    }
+  }
+
+  autoscaling {
+    total_min_node_count = 0
+    total_max_node_count = 10
     location_policy      = "ANY"
   }
 
@@ -259,7 +302,7 @@ resource "google_container_node_pool" "longhorn-pool-1" {
 }
 
 resource "google_compute_firewall" "master_to_nodes" {
-  name      = "gke-custom-master-to-nodes"
+  name      = "gke-custom-master-to-nodes-${local.cluster_name}"
   network   = google_compute_network.daytona-vpc.name
   direction = "INGRESS"
 

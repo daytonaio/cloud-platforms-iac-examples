@@ -25,7 +25,8 @@ YAML
 
 module "external_dns_service_account" {
   source                          = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  name                            = "external-dns"
+  name                            = "external-dns-${local.cluster_name}"
+  k8s_sa_name                     = "external-dns"
   namespace                       = kubernetes_namespace.infrastructure.metadata[0].name
   use_existing_k8s_sa             = true
   annotate_k8s_sa                 = false

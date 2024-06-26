@@ -16,7 +16,7 @@ resource "helm_release" "daytona_workspace" {
   namespace  = kubernetes_namespace.watkins.metadata[0].name
   repository = "oci://ghcr.io/daytonaio/charts"
   chart      = "watkins"
-  version    = "2.99.0"
+  version    = "2.100.1"
   timeout    = 720
   atomic     = true
 
@@ -28,15 +28,14 @@ namespaceOverride: "watkins"
 fullnameOverride: "watkins"
 configuration:
   defaultWorkspaceClass:
-    runtimeClassName: sysbox-runc
-    name: Default
     cpu: 2
+    gpu: ""
     memory: 8
+    name: Default
     storage: 50
     usageMultiplier: 1
-    # Leave undefined for disabled GPU support in default workspace class
-    gpu: ""
-  gpuResourceName: nvidia.com/gpu
+    runtimeClass: sysbox-runc
+    gpuResourceName: nvidia.com/gpu
   workspaceStorageClass: longhorn
   workspaceNamespace:
     name: watkins-workspaces
@@ -55,9 +54,6 @@ components:
       type: LoadBalancer
       annotations:
         external-dns.alpha.kubernetes.io/hostname: "*.ssh.${local.dns_zone}"
-  workspaceProvisioner:
-    workspaces:
-      tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
   workspaceProxy:
     service:
       annotations:
@@ -71,6 +67,21 @@ components:
     service:
       annotations:
         cloud.google.com/backend-config: '{"ports": {"3000":"daytona"}}'
+  workspaceProvisioner:
+    workspaces:
+      nodeSelector: '{"daytona.io/node-role" : "workload"}'
+      tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
+  workspaceVolumeInit:
+    storageInit:
+      nodeSelector: '{"daytona.io/node-role" : "workload"}'
+      tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
+    nodeSelector:
+      daytona.io/node-role: "workload"
+    podTolerations:
+      - key: "daytona.io/node-role"
+        operator: "Equal"
+        value: "workload"
+        effect: "NoSchedule"
 gitProviders:
   github:
     clientId: ${local.github_client_id}
@@ -95,6 +106,9 @@ redis:
 YAML
   ]
 
-  depends_on = [helm_release.longhorn]
+  depends_on = [
+    helm_release.longhorn,
+    kubectl_manifest.daytona_backend_config
+  ]
 
 }

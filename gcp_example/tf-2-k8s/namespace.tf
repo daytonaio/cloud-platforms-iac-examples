@@ -25,3 +25,11 @@ resource "kubernetes_namespace" "watkins" {
     name = "watkins"
   }
 }
+
+resource "kubernetes_namespace" "gpu-operator" {
+  count = local.gpu.enabled ? 1 : 0
+
+  metadata {
+    name = "gpu-operator"
+  }
+}

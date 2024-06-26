@@ -3,6 +3,7 @@ project: "daytona-test"
 
 # Name of the GKE cluster
 cluster_name: "daytona-workspaces"
+cluster_version: "1.29"
 
 # DNS zone that will be created in Cloud DNS.
 dns_zone: "daytona.changeme"
@@ -26,6 +27,16 @@ gke_network:
 #   admin1: 198.198.8.1/32
 #   office2: 198.199.8.1/24
 authorized_networks: {}
+
+gpu:
+  # Use GPU node pool in the cluster
+  enabled: false
+  zones: ["us-east1-c", "us-east1-d"]
+  node_type: n1-standard-16
+  # Required gpu type out of these: nvidia-tesla-k80, nvidia-tesla-p100, nvidia-tesla-p4, nvidia-tesla-v100, nvidia-tesla-t4, nvidia-tesla-a100, nvidia-a100-80gb, nvidia-l4
+  type: nvidia-tesla-t4
+  # number of GPUs per node
+  count: 4
 
 # You must replace this email address with your own.
 # Let's Encrypt will use this to contact you about expiring
