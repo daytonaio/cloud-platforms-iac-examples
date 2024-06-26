@@ -3,7 +3,7 @@ resource "helm_release" "daytona_workspace" {
   namespace  = kubernetes_namespace.watkins.metadata[0].name
   repository = "oci://ghcr.io/daytonaio/charts"
   chart      = "watkins"
-  version    = "2.99.0"
+  version    = "2.100.1"
   timeout    = 720
   atomic     = true
 
@@ -15,15 +15,14 @@ namespaceOverride: "watkins"
 fullnameOverride: "watkins"
 configuration:
   defaultWorkspaceClass:
-    runtimeClassName: sysbox-runc
-    name: Default
     cpu: 2
+    gpu: ""
     memory: 8
+    name: Default
     storage: 50
     usageMultiplier: 1
-    # Leave undefined for disabled GPU support in default workspace class
-    gpu: ""
-  gpuResourceName: nvidia.com/gpu
+    runtimeClass: sysbox-runc
+    gpuResourceName: nvidia.com/gpu
   workspaceStorageClass: longhorn
   workspaceNamespace:
     name: watkins-workspaces
@@ -53,7 +52,19 @@ components:
         service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
   workspaceProvisioner:
     workspaces:
+      nodeSelector: '{"daytona.io/node-role" : "workload"}'
       tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
+  workspaceVolumeInit:
+    storageInit:
+      nodeSelector: '{"daytona.io/node-role" : "workload"}'
+      tolerations: '[{"key": "daytona.io/node-role", "operator": "Equal", "value": "workload", "effect": "NoSchedule"}]'
+    nodeSelector:
+      daytona.io/node-role: "workload"
+    podTolerations:
+      - key: "daytona.io/node-role"
+        operator: "Equal"
+        value: "workload"
+        effect: "NoSchedule"
 gitProviders:
   github:
     clientId: ${local.github_client_id}

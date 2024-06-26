@@ -128,12 +128,6 @@ module "eks" {
           yum install amazon-ssm-agent -y
           systemctl enable amazon-ssm-agent
           systemctl start amazon-ssm-agent
-
-          yum --setopt=tsflags=noscripts install iscsi-initiator-utils -y
-          echo "InitiatorName=$(/sbin/iscsi-iname)" > /etc/iscsi/initiatorname.iscsi
-          systemctl enable iscsid
-          systemctl start iscsid
-          modprobe iscsi_tcp
           EOF
       block_device_mappings = {
         xvda = {
@@ -147,8 +141,7 @@ module "eks" {
         }
       }
       labels = {
-        "daytona.io/node-role"     = "app"
-        "daytona.io/runtime-ready" = "true"
+        "daytona.io/node-role" = "app"
       }
     },
 
@@ -248,8 +241,8 @@ module "eks" {
         }
       )
       capacity_type              = "ON_DEMAND"
-      desired_size               = 1
-      min_size                   = 1
+      desired_size               = 0
+      min_size                   = 0
       max_size                   = 20
       instance_types             = ["c6a.4xlarge"]
       enable_monitoring          = true
