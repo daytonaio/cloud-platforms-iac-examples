@@ -2,7 +2,7 @@ resource "helm_release" "cert_manager" {
   name       = "cert-manager"
   repository = "https://charts.jetstack.io"
   chart      = "cert-manager"
-  version    = "1.13.2"
+  version    = "v1.13.2"
   namespace  = kubernetes_namespace.infrastructure.metadata[0].name
   atomic     = true
 
@@ -29,7 +29,8 @@ YAML
 
 module "cert_manager_service_account" {
   source              = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  name                = "cert-manager"
+  name                = "cert-manager-${local.cluster_name}"
+  k8s_sa_name         = "cert-manager"
   namespace           = kubernetes_namespace.infrastructure.metadata[0].name
   use_existing_k8s_sa = true
   annotate_k8s_sa     = false

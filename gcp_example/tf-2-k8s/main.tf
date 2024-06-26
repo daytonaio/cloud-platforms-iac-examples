@@ -79,4 +79,44 @@ locals {
   github_client_secret  = local.config.gitProviders.github.clientSecret
   prometheus_monitoring = local.config.prometheus_monitoring
 
+  gpu = {
+    enabled   = local.config.gpu.enabled
+    node_type = local.config.gpu.node_type
+    type      = local.config.gpu.type
+    count     = local.config.gpu.count
+    zones     = local.config.gpu.zones
+  }
+
+}
+
+## PDB for kube-dns so app node-group can scale down to 1. By default there are 2 pods for kube-dns after 1.7 k8s version
+resource "kubectl_manifest" "kube_dns_pdb" {
+  yaml_body = <<YAML
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: kube-dns
+  namespace: kube-system
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      k8s-app: kube-dns
+YAML
+}
+
+## PDB for metrics-server so app node-group can scale down to 1. By default there is 1 pod so restarting it causes the loss of metrics for >1 minute, as well as metrics in dashboard from the last 15 minutes. Metrics Server downtime also means effective HPA downtime as it relies on metrics. Add PDB for it only if you're sure you don't mind.
+resource "kubectl_manifest" "metrics_server_pdb" {
+  yaml_body = <<YAML
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: metrics-server
+  namespace: kube-system
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      k8s-app: metrics-server
+YAML
 }
