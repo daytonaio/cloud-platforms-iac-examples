@@ -20,7 +20,7 @@ vpc:
 
 # Name of the EKS cluster
 cluster_name: "daytona-workspaces"
-cluster_version: "1.28"
+cluster_version: "1.29"
 
 # External networks that can access the Kubernetes cluster master through HTTPS.
 # More info https://cloud.google.com/kubernetes-engine/docs/how-to/authorized-networks
@@ -29,6 +29,11 @@ cluster_version: "1.28"
 #   office2: 198.199.8.1/24
 authorized_networks:
   all: 0.0.0.0/0
+
+gpu:
+  # Use GPU node pool in the cluster
+  enabled: false
+  node_type: p3.2xlarge
 
 # Create kube-prometheus-stack for monitoring
 # https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack
