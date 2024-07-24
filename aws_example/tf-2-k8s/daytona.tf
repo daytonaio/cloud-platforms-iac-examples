@@ -38,7 +38,6 @@ ingress:
     alb.ingress.kubernetes.io/target-type: 'ip'
     alb.ingress.kubernetes.io/ssl-redirect: "443"
     alb.ingress.kubernetes.io/healthcheck-path: "/health"
-    cert-manager.io/cluster-issuer: letsencrypt-prod
   tls: true
 components:
   dashboard:
