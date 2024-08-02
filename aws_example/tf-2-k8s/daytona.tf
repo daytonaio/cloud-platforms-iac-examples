@@ -5,8 +5,8 @@ resource "helm_release" "daytona_workspace" {
   chart         = "watkins"
   version       = "2.101.2"
   timeout       = 1800
-  atomic        = true
-  wait_for_jobs = true
+  atomic        = false
+  wait_for_jobs = false
 
   values = [<<YAML
 image:
