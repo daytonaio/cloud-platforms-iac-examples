@@ -117,7 +117,6 @@ module "eks" {
         }
       )
       capacity_type           = "ON_DEMAND"
-      desired_size            = 1
       min_size                = 1
       max_size                = 3
       instance_types          = ["m6a.4xlarge"]
@@ -158,7 +157,7 @@ module "eks" {
       desired_size            = 3
       min_size                = 3
       max_size                = 3
-      instance_types          = ["i3.8xlarge"]
+      instance_types          = ["i3.2xlarge"]
       enable_monitoring       = true
       subnet_ids              = module.vpc.private_subnets
       pre_bootstrap_user_data = <<EOF
@@ -241,7 +240,6 @@ module "eks" {
         }
       )
       capacity_type              = "ON_DEMAND"
-      desired_size               = 0
       min_size                   = 0
       max_size                   = 20
       instance_types             = ["c6a.4xlarge"]
@@ -346,21 +344,3 @@ module "external_dns_irsa_role" {
     }
   }
 }
-
-# module "cert_manager_irsa_role" {
-#   source = "terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks"
-
-#   role_name                  = "${module.eks.cluster_name}-cert-manager"
-#   attach_cert_manager_policy = true
-
-#   cert_manager_hosted_zone_arns = [
-#     aws_route53_zone.zone.arn
-#   ]
-
-#   oidc_providers = {
-#     one = {
-#       provider_arn               = module.eks.oidc_provider_arn
-#       namespace_service_accounts = ["infrastructure:cert-manager"]
-#     }
-#   }
-# }
