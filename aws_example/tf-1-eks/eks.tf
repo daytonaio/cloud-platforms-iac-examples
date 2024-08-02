@@ -183,7 +183,7 @@ module "eks" {
           yum install mdadm -y
 
           # Create RAID-0 array across the instance store NVMe SSDs
-          mdadm --create /dev/md0 --level=0 --name=md0 --raid-devices=$num_drives "$${nvme_drives[@]}"
+          mdadm --create --force /dev/md0 --level=0 --name=md0 --raid-devices=$num_drives "$${nvme_drives[@]}"
 
           # Format drive with Ext4
           mkfs.ext4 /dev/md0
