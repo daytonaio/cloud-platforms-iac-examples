@@ -3,10 +3,10 @@ resource "helm_release" "daytona_workspace" {
   namespace     = kubernetes_namespace.watkins.metadata[0].name
   repository    = "oci://ghcr.io/daytonaio/charts"
   chart         = "watkins"
-  version       = "2.101.2"
+  version       = "2.103.1"
   timeout       = 1800
   atomic        = false
-  wait_for_jobs = false
+  wait_for_jobs = true
 
   values = [<<YAML
 image:
