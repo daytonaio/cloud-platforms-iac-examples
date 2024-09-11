@@ -5,7 +5,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   version         = "1.7.0"
   namespace       = kubernetes_namespace.infrastructure.metadata[0].name
   atomic          = false
-  cleanup_on_fail = true
+  cleanup_on_fail = false
 
   values = [<<YAML
 region: ${local.region}
