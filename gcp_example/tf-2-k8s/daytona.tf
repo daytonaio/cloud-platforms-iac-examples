@@ -16,7 +16,7 @@ resource "helm_release" "daytona_workspace" {
   namespace  = kubernetes_namespace.watkins.metadata[0].name
   repository = "oci://ghcr.io/daytonaio/charts"
   chart      = "watkins"
-  version    = "2.101.2"
+  version    = "2.110.0"
   timeout    = 720
   atomic     = true
 
@@ -59,7 +59,6 @@ components:
       annotations:
         cloud.google.com/backend-config: '{"ports": {"80":"daytona"}}'
   dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
     service:
       annotations:
         cloud.google.com/backend-config: '{"ports": {"3000":"daytona"}}'
@@ -82,10 +81,6 @@ components:
         operator: "Equal"
         value: "workload"
         effect: "NoSchedule"
-gitProviders:
-  github:
-    clientId: ${local.github_client_id}
-    clientSecret: ${local.github_client_secret}
 postgresql:
   enabled: true
 rabbitmq:

@@ -15,8 +15,15 @@ image:
 namespaceOverride: "watkins"
 fullnameOverride: "watkins"
 configuration:
-  defaultWorkspaceClassName: small
-  workspaceRuntimeClassName: kata-clh
+  defaultWorkspaceClass:
+    cpu: 2
+    gpu: ""
+    memory: 8
+    name: Default
+    storage: 50
+    usageMultiplier: 1
+    runtimeClass: kata-clh
+    gpuResourceName: nvidia.com/gpu
   workspaceStorageClass: longhorn
   workspaceNamespace:
     name: watkins-workspaces
@@ -30,8 +37,6 @@ ingress:
     nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
   tls: true
 components:
-  dashboard:
-    workspaceTemplatesIndexUrl: https://raw.githubusercontent.com/daytonaio-templates/index/main/templates.json
   workspaceVolumeInit:
     excludeJetbrainsCodeEditors: false
   sshGateway:
@@ -44,10 +49,6 @@ components:
     workspaces:
       runtimeClass: kata-clh
       tolerations: '[{"key": "workernode", "operator": "Equal", "value": "true", "effect": "NoSchedule"}]'
-gitProviders:
-  github:
-    clientId: ${local.github_client_id}
-    clientSecret: ${local.github_client_secret}
   postgresql:
     primary:
       persistence:
