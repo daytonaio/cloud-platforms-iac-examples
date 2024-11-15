@@ -83,8 +83,6 @@ locals {
   dns_zone              = local.config.dns_zone
   cluster_name          = local.config.cluster_name
   email                 = local.config.email_ca_issuer
-  github_client_id      = local.config.gitProviders.github.clientId
-  github_client_secret  = local.config.gitProviders.github.clientSecret
   prometheus_monitoring = local.config.prometheus_monitoring
 
   common_tags = {

@@ -3,7 +3,7 @@ resource "helm_release" "daytona_workspace" {
   namespace        = kubernetes_namespace.watkins.metadata[0].name
   repository       = "oci://ghcr.io/daytonaio/charts"
   chart            = "watkins"
-  version          = "2.94.0"
+  version          = "2.114.1"
   create_namespace = false
   timeout          = 720
   atomic           = true
@@ -49,6 +49,25 @@ components:
     workspaces:
       runtimeClass: kata-clh
       tolerations: '[{"key": "workernode", "operator": "Equal", "value": "true", "effect": "NoSchedule"}]'
+      ## The capacityReserve feature deploys a low-priority pod that reserves resources on the cluster.
+      ## This pod can be quickly evicted when actual workloads need to be scheduled, ensuring that there's
+      ## always capacity available for sudden spikes in demand. It helps maintain a buffer of resources,
+      ## improving responsiveness and reducing potential scheduling delays. It also prepulls the workspace image.
+      capacityReserve:
+        enabled: true
+        priorityValue: -10
+        tolerations:
+          - effect: NoSchedule
+            operator: Exists
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: daytona.io/node-role
+                      operator: In
+                      values:
+                        - workload
   postgresql:
     primary:
       persistence:
