@@ -12,13 +12,14 @@ YAML
 }
 
 resource "helm_release" "daytona_workspace" {
-  name       = "watkins"
-  namespace  = kubernetes_namespace.watkins.metadata[0].name
-  repository = "oci://ghcr.io/daytonaio/charts"
-  chart      = "watkins"
-  version    = "2.114.1"
-  timeout    = 720
-  atomic     = true
+  name          = "watkins"
+  namespace     = kubernetes_namespace.watkins.metadata[0].name
+  repository    = "oci://ghcr.io/daytonaio/charts"
+  chart         = "watkins"
+  version       = "2.117.0"
+  timeout       = 1800
+  atomic        = false
+  wait_for_jobs = true
 
   values = [<<YAML
 image:
