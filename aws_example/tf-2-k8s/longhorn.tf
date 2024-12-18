@@ -8,7 +8,7 @@ resource "helm_release" "longhorn" {
   name       = "longhorn"
   repository = "https://charts.longhorn.io"
   chart      = "longhorn"
-  version    = "1.6.2"
+  version    = "1.7.2"
   namespace  = kubernetes_namespace.longhorn-system.metadata[0].name
   timeout    = 300
   atomic     = false
@@ -32,7 +32,7 @@ defaultSettings:
   storageMinimalAvailablePercentage: 10
   storageReservedPercentageForDefaultDisk: 15
   systemManagedComponentsNodeSelector: "daytona.io/runtime-ready:true"
-  taintToleration: "daytona.io/node-role=storage:NoSchedule;daytona.io/node-role=workload:NoSchedule"
+  taintToleration: ":"
   guaranteedInstanceManagerCPU: 20
 longhornManager:
   nodeSelector:
