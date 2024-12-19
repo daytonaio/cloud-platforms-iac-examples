@@ -32,32 +32,20 @@ defaultSettings:
   storageMinimalAvailablePercentage: 10
   storageReservedPercentageForDefaultDisk: 15
   systemManagedComponentsNodeSelector: "daytona.io/runtime-ready:true"
-  taintToleration: ":"
+  taintToleration: ":NoSchedule"
   guaranteedInstanceManagerCPU: 20
 longhornManager:
   nodeSelector:
     daytona.io/runtime-ready: "true"
   tolerations:
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "storage"
-      effect: "NoSchedule"
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "workload"
-      effect: "NoSchedule"
+    - effect: NoSchedule
+      operator: Exists
 longhornDriver:
   nodeSelector:
     daytona.io/runtime-ready: "true"
   tolerations:
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "storage"
-      effect: "NoSchedule"
-    - key: "daytona.io/node-role"
-      operator: "Equal"
-      value: "workload"
-      effect: "NoSchedule"
+    - effect: NoSchedule
+      operator: Exists
   EOF
   ]
 
